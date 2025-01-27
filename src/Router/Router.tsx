@@ -7,7 +7,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function Router() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{headerShown: false}}>
       <Stack.Screen name={SCREENS.BottomTabs} component={BottomTabMain} />
     </Stack.Navigator>
   );

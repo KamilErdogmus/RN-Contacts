@@ -23,6 +23,10 @@ export default function TabBarIcon({name, size, focused}: IProps) {
   };
 
   return (
-    <Icon name={getIconName()} size={size} color={focused ? '#000' : '#999'} />
+    <Icon
+      name={getIconName()}
+      size={size}
+      color={focused ? '#344cb7' : '#7e99a3'}
+    />
   );
 }

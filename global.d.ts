@@ -10,4 +10,13 @@ declare global {
     [SCREENS.Contacts]: undefined;
     [SCREENS.Favorites]: undefined;
   };
+
+  interface IUser {
+    id: number;
+    name: string;
+    surname: string;
+    phone: string;
+    email: string;
+    job: string;
+  }
 }
