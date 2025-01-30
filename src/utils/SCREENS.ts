@@ -1,6 +1,8 @@
 export enum SCREENS {
   BottomTabs = 'BottomTabs',
-  Resent = 'Resent',
+  Recent = 'Recent',
+  Detail = 'Detail',
   Contacts = 'Contacts',
   Favorites = 'Favorites',
+  Calling = 'Calling',
 }

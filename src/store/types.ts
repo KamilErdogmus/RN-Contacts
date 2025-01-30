@@ -1,11 +1,13 @@
 interface IContactState {
-  // State
   contacts: IContact[];
+  recents: Recent[];
   loading: boolean;
   error: string | null;
+
   // Actions
   fetchContacts: () => Promise<void>;
-  setContacts: (contacts: IContact[]) => void;
+  fetchRecents: () => Promise<void>;
+  addRecent: (recent_id: number) => Promise<void>;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 }

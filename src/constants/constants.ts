@@ -2,4 +2,10 @@ import {Dimensions} from 'react-native';
 
 const {width, height} = Dimensions.get('window');
 
-export {width, height};
+const sizes = {
+  SMALL: 'small',
+  MEDIUM: 'Medium',
+  LARGE: 'Large',
+} as const;
+
+export {width, height, sizes};

@@ -3,11 +3,17 @@ import React from 'react';
 import {contactCardItemStyles} from './styles';
 import {convertFullName} from '../../utils/convertFullName';
 import Avatar from './Avatar';
+import {useNavigation} from '@react-navigation/native';
+import {SCREENS} from '../../utils/SCREENS';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 export default function ContactCardItem({item}: {item: IUser}) {
-  console.log('item', item);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
-    <Pressable style={contactCardItemStyles.container}>
+    <Pressable
+      onPress={() => navigation.navigate(SCREENS.Detail, {contact: item})}
+      style={contactCardItemStyles.container}>
       <View style={contactCardItemStyles.avatarContainer}>
         <Avatar name={item.name} surname={item.surname} />
       </View>

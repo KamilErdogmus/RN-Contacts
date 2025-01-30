@@ -1,10 +1,11 @@
 import {create} from 'zustand';
 import {IContactState} from './types';
-import {getContacts} from '../database/Database';
+import {addRecentCall, getContacts, getRecents} from '../database/Database';
 
 export const useContactStore = create<IContactState>()(set => ({
   // Initial state
   contacts: [],
+  recents: [],
   loading: false,
   error: null,
 
@@ -12,17 +13,43 @@ export const useContactStore = create<IContactState>()(set => ({
   fetchContacts: async () => {
     set({loading: true, error: null});
     try {
-      console.log('Contacts fetch başladı'); // Debug log
+      console.log('Contacts fetching...');
       const result = await getContacts();
-      console.log('Fetch edilen veriler:', result); // Debug log
+      console.log('Fetched contacts:', result);
       set({contacts: result, loading: false});
     } catch (error) {
       console.error('Fetch error:', error);
-      set({error: error.message, loading: false});
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred';
+      set({error: errorMessage, loading: false});
     }
   },
 
-  setContacts: contacts => set({contacts}),
+  fetchRecents: async () => {
+    set({loading: true, error: null});
+    try {
+      const result = await getRecents();
+      set({recents: result, loading: false});
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred';
+      set({error: errorMessage, loading: false});
+    }
+  },
+
+  addRecent: async (recent_id: number) => {
+    set({loading: true, error: null});
+    try {
+      await addRecentCall(new Date().toDateString(), recent_id);
+      const recents = await getRecents();
+      set({recents, loading: false});
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unknown error occurred';
+      set({error: errorMessage, loading: false});
+    }
+  },
+
   setLoading: loading => set({loading}),
   setError: error => set({error}),
 }));

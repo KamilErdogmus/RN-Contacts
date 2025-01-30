@@ -11,7 +11,7 @@ interface IProps {
 export default function TabBarIcon({name, size, focused}: IProps) {
   const getIconName = () => {
     switch (name) {
-      case SCREENS.Resent:
+      case SCREENS.Recent:
         return 'history';
       case SCREENS.Contacts:
         return 'contacts';

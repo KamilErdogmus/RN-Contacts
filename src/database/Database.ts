@@ -42,6 +42,30 @@ const createContactsTable = async (): Promise<void> => {
   });
 };
 
+const createRecentsTable = async (): Promise<void> => {
+  const database = await getDB();
+  database.transaction((txn: Transaction) => {
+    txn.executeSql(
+      `CREATE TABLE IF NOT EXISTS recents (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        recent_id INTEGER,
+        FOREIGN KEY (recent_id) REFERENCES users(id)
+          ON DELETE CASCADE
+          ON UPDATE CASCADE
+      )`,
+      [],
+      (_: Transaction, _res: ResultSet) => {
+        console.log('Recents tablo başarıyla oluşturuldu');
+      },
+      (_: Transaction, error: SQLite.SQLError): boolean => {
+        console.error('Tablo oluşturulurken hata:', error);
+        return false;
+      },
+    );
+  });
+};
+
 const getContacts = async (): Promise<IContact[]> => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -56,7 +80,40 @@ const getContacts = async (): Promise<IContact[]> => {
               rows.push(res.rows.item(i));
             }
             console.log('Veritabanından gelen veriler:', rows);
-            resolve(rows); // if kontrolünü kaldırdık
+            resolve(rows);
+          },
+          (_: Transaction, error: SQLite.SQLError): boolean => {
+            console.error('SQL sorgu hatası:', error);
+            reject(error);
+            return false;
+          },
+        );
+      });
+    } catch (error) {
+      console.error('Genel veritabanı hatası:', error);
+      reject(error);
+    }
+  });
+};
+
+const getRecents = async (): Promise<Recent[]> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const database = await getDB();
+      database.transaction((txn: Transaction) => {
+        txn.executeSql(
+          `SELECT r.*, u.name, u.surname, u.phone 
+           FROM recents r
+           JOIN users u ON r.recent_id = u.id
+           ORDER BY r.date DESC`, // En son aramalar üstte
+          [],
+          (_: Transaction, res: ResultSet) => {
+            const rows = [];
+            for (let i = 0; i < res.rows.length; i++) {
+              rows.push(res.rows.item(i));
+            }
+            console.log('Arama geçmişi:', rows);
+            resolve(rows);
           },
           (_: Transaction, error: SQLite.SQLError): boolean => {
             console.error('SQL sorgu hatası:', error);
@@ -83,23 +140,103 @@ const addNewContact = async (
   return new Promise(async (resolve, reject) => {
     try {
       const database = await getDB();
+
+      // Debug: Parametre kontrolü
+      console.log('Eklenecek veriler:', {
+        name,
+        surname,
+        phone,
+        email,
+        address,
+        job,
+      });
+
       database.transaction(
         (txn: Transaction) => {
-          console.log('Transaction başladı'); // Debug log
-          console.log('Eklenecek veriler:', {
-            name,
-            surname,
-            phone,
-            email,
-            address,
-            job,
-          }); // Debug log
+          const query =
+            'INSERT INTO users (name, surname, phone, email, address, job) VALUES (?, ?, ?, ?, ?, ?)';
+          const params = [name, surname, phone, email, address, job];
+
+          // Debug: SQL sorgusu
+          console.log('SQL Query:', query);
+          console.log('Parameters:', params);
 
           txn.executeSql(
-            'INSERT INTO users (name, surname, phone, email, address, job) VALUES (?, ?, ?, ?, ?, ?)',
-            [name, surname, phone, email, address, job],
+            query,
+            params,
+            (_: Transaction, result: ResultSet) => {
+              // Debug: Başarılı sonuç
+              console.log('Insert result:', result);
+              console.log('Inserted ID:', result.insertId);
+              resolve();
+            },
+            (_: Transaction, error: SQLite.SQLError): boolean => {
+              // Debug: SQL hatası
+              console.error('SQL Error:', {
+                code: error.code,
+                message: error.message,
+                query,
+                params,
+              });
+              reject(error);
+              return false;
+            },
+          );
+        },
+        error => {
+          // Debug: Transaction hatası
+          console.error('Transaction Error:', error);
+          reject(error);
+        },
+        () => {
+          console.log('Transaction successful');
+        },
+      );
+    } catch (error) {
+      console.error('General Error:', error);
+      reject(error);
+    }
+  });
+};
+
+// Tabloyu kontrol etmek için yardımcı fonksiyon
+const checkTableStructure = async () => {
+  const database = await getDB();
+  return new Promise((resolve, reject) => {
+    database.transaction(txn => {
+      txn.executeSql(
+        "PRAGMA table_info('users')",
+        [],
+        (_, result) => {
+          console.log('Tablo yapısı:', result.rows.raw());
+          resolve(result.rows.raw());
+        },
+        (_, error) => {
+          console.error('Tablo yapısı kontrol hatası:', error);
+          reject(error);
+          return false;
+        },
+      );
+    });
+  });
+};
+
+const addRecentCall = async (
+  date: string,
+  recent_id: number,
+): Promise<void> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const database = await getDB();
+      database.transaction(
+        (txn: Transaction) => {
+          console.log('Transaction başladı');
+
+          txn.executeSql(
+            'INSERT INTO recents (date, recent_id) VALUES (?, ?)',
+            [date, recent_id],
             (_: Transaction, _res: ResultSet) => {
-              console.log('Kişi başarıyla eklendi');
+              console.log('Arama geçmişine eklendi');
               resolve();
             },
             (_: Transaction, error: SQLite.SQLError): boolean => {
@@ -110,11 +247,11 @@ const addNewContact = async (
           );
         },
         error => {
-          console.error('Transaction hatası:', error); // Transaction hatası log'u
+          console.error('Transaction hatası:', error);
           reject(error);
         },
         () => {
-          console.log('Transaction başarılı'); // Transaction başarı log'u
+          console.log('Transaction başarılı');
         },
       );
     } catch (error) {
@@ -145,4 +282,35 @@ const resetDatabase = async (): Promise<void> => {
   });
 };
 
-export {createContactsTable, getContacts, addNewContact, resetDatabase};
+const resetRecentsTable = async (): Promise<void> => {
+  const database = await getDB();
+  return new Promise((resolve, reject) => {
+    database.transaction((txn: Transaction) => {
+      txn.executeSql(
+        'DROP TABLE IF EXISTS recents',
+        [],
+        () => {
+          console.log('Recents tablosu silindi');
+          createRecentsTable().then(resolve).catch(reject);
+        },
+        (_, error) => {
+          console.error('Tablo silinirken hata:', error);
+          reject(error);
+          return false;
+        },
+      );
+    });
+  });
+};
+
+export {
+  createContactsTable,
+  createRecentsTable,
+  getContacts,
+  addNewContact,
+  addRecentCall,
+  getRecents,
+  resetDatabase,
+  resetRecentsTable,
+  checkTableStructure,
+};
