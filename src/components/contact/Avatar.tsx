@@ -3,7 +3,6 @@ import React from 'react';
 import {contactCardItemStyles} from './styles';
 import {getInitialLetters} from '../../utils/convertFullName';
 import {sizes, width} from '../../constants/constants';
-import {COLORS} from '../../theme/COLORS';
 
 export default function Avatar({
   name,
@@ -19,11 +18,11 @@ export default function Avatar({
       case sizes.SMALL:
         return width * 0.12;
       case sizes.MEDIUM:
-        return width * 0.18;
+        return width * 0.15;
       case sizes.LARGE:
-        return width * 0.22;
+        return width * 0.18;
       default:
-        return width * 0.2;
+        return width * 0.16;
     }
   };
   const containerSize = getSize();

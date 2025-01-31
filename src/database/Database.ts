@@ -3,7 +3,6 @@ import SQLite, {
   SQLiteDatabase,
   Transaction,
 } from 'react-native-sqlite-storage';
-import {IContact} from '../store/types';
 
 let db: SQLiteDatabase;
 
@@ -25,14 +24,14 @@ const createContactsTable = async (): Promise<void> => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(100),
         surname VARCHAR(500),
-        phone TEXT,
+        phone TEXT UNIQUE,
         email VARCHAR(500),
         address VARCHAR(500),
         job VARCHAR(500)
       )`,
       [],
       (_: Transaction, _res: ResultSet) => {
-        console.log('Tablo başarıyla oluşturuldu');
+        console.log('Contacts tablo başarıyla oluşturuldu');
       },
       (_: Transaction, error: SQLite.SQLError): boolean => {
         console.error('Tablo oluşturulurken hata:', error);
@@ -50,6 +49,8 @@ const createRecentsTable = async (): Promise<void> => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date DATETIME DEFAULT CURRENT_TIMESTAMP,
         recent_id INTEGER,
+        callType VARCHAR(50) DEFAULT 'outgoing',
+        duration INTEGER DEFAULT 0,
         FOREIGN KEY (recent_id) REFERENCES users(id)
           ON DELETE CASCADE
           ON UPDATE CASCADE
@@ -96,34 +97,39 @@ const getContacts = async (): Promise<IContact[]> => {
   });
 };
 
-const getRecents = async (): Promise<Recent[]> => {
+const getRecents = async (): Promise<(Recent & IContact)[]> => {
   return new Promise(async (resolve, reject) => {
     try {
       const database = await getDB();
       database.transaction((txn: Transaction) => {
         txn.executeSql(
-          `SELECT r.*, u.name, u.surname, u.phone 
+          `SELECT 
+            r.id,
+            r.date,
+            r.recent_id,
+            r.callType,
+            r.duration,
+            u.name,
+            u.surname,
+            u.phone
            FROM recents r
            JOIN users u ON r.recent_id = u.id
-           ORDER BY r.date DESC`, // En son aramalar üstte
+           ORDER BY r.date DESC`,
           [],
           (_: Transaction, res: ResultSet) => {
             const rows = [];
             for (let i = 0; i < res.rows.length; i++) {
               rows.push(res.rows.item(i));
             }
-            console.log('Arama geçmişi:', rows);
             resolve(rows);
           },
           (_: Transaction, error: SQLite.SQLError): boolean => {
-            console.error('SQL sorgu hatası:', error);
             reject(error);
             return false;
           },
         );
       });
     } catch (error) {
-      console.error('Genel veritabanı hatası:', error);
       reject(error);
     }
   });
@@ -199,7 +205,6 @@ const addNewContact = async (
   });
 };
 
-// Tabloyu kontrol etmek için yardımcı fonksiyon
 const checkTableStructure = async () => {
   const database = await getDB();
   return new Promise((resolve, reject) => {
@@ -222,19 +227,18 @@ const checkTableStructure = async () => {
 };
 
 const addRecentCall = async (
-  date: string,
   recent_id: number,
+  callType: CallType = 'outgoing',
+  duration: number = 0,
 ): Promise<void> => {
   return new Promise(async (resolve, reject) => {
     try {
       const database = await getDB();
       database.transaction(
         (txn: Transaction) => {
-          console.log('Transaction başladı');
-
           txn.executeSql(
-            'INSERT INTO recents (date, recent_id) VALUES (?, ?)',
-            [date, recent_id],
+            'INSERT INTO recents (recent_id, callType, duration) VALUES (?, ?, ?)',
+            [recent_id, callType, duration],
             (_: Transaction, _res: ResultSet) => {
               console.log('Arama geçmişine eklendi');
               resolve();
@@ -303,6 +307,89 @@ const resetRecentsTable = async (): Promise<void> => {
   });
 };
 
+const getContactById = async (id: number): Promise<IContact> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const database = await getDB();
+      database.transaction((txn: Transaction) => {
+        txn.executeSql(
+          'SELECT * FROM users WHERE id = ?',
+          [id],
+          (_: Transaction, res: ResultSet) => {
+            if (res.rows.length > 0) {
+              resolve(res.rows.item(0));
+            } else {
+              reject(new Error('Contact not found'));
+            }
+          },
+          (_: Transaction, error: SQLite.SQLError): boolean => {
+            reject(error);
+            return false;
+          },
+        );
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const deleteRecent = async (id: number): Promise<void> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const database = await getDB();
+      database.transaction((txn: Transaction) => {
+        txn.executeSql(
+          'DELETE FROM recents WHERE id = ?',
+          [id],
+          () => resolve(),
+          (_, error) => {
+            reject(error);
+            return false;
+          },
+        );
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const updateContact = async (id: number, values: IContact): Promise<void> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const database = await getDB();
+      database.transaction((txn: Transaction) => {
+        txn.executeSql(
+          `UPDATE users 
+           SET name = ?, surname = ?, phone = ?, email = ?, address = ?, job = ?
+           WHERE id = ?`,
+          [
+            values.name,
+            values.surname,
+            values.phone,
+            values.email,
+            values.address,
+            values.job,
+            id,
+          ],
+          (_: Transaction, _res: ResultSet) => {
+            console.log('Contact updated successfully');
+            resolve();
+          },
+          (_: Transaction, error: SQLite.SQLError): boolean => {
+            console.error('SQL update error:', error);
+            reject(error);
+            return false;
+          },
+        );
+      });
+    } catch (error) {
+      console.error('General database error:', error);
+      reject(error);
+    }
+  });
+};
 export {
   createContactsTable,
   createRecentsTable,
@@ -310,7 +397,10 @@ export {
   addNewContact,
   addRecentCall,
   getRecents,
+  getContactById,
   resetDatabase,
   resetRecentsTable,
+  deleteRecent,
+  updateContact,
   checkTableStructure,
 };

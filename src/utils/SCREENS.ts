@@ -5,4 +5,5 @@ export enum SCREENS {
   Contacts = 'Contacts',
   Favorites = 'Favorites',
   Calling = 'Calling',
+  ContactForm = 'ContactForm',
 }

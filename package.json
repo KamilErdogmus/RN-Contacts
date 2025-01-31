@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "podi": "cd ios && pod install && cd .."
+    "podi": "cd ios && pod install && cd ..",
+    "watch": "watchman watch-del-all"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^7.2.0",

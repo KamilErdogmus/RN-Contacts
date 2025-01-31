@@ -1,16 +1,56 @@
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import React, {useEffect} from 'react';
 import {useContactStore} from '../../../store/store';
+import {FlatList} from 'react-native';
+import RecentCards from '../../../components/recents/RecentCards';
+import {SCREENS} from '../../../utils/SCREENS';
+import {useNavigation} from '@react-navigation/native';
+import {deleteRecent, getContactById} from '../../../database/Database';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {recentScreenStyles as styles} from './styles';
 
 export default function RecentsScreen() {
-  const {recents, fetchRecents} = useContactStore();
-  console.log('recentss', recents);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const {recents, fetchRecents, loading} = useContactStore();
+
   useEffect(() => {
     fetchRecents();
   }, [fetchRecents]);
+
+  const handleRecentPress = async (recent: Recent) => {
+    try {
+      const contact = await getContactById(recent.recent_id);
+      navigation.navigate(SCREENS.Detail, {contact});
+    } catch (error) {
+      console.error('Contact details error:', error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteRecent(id); // Database fonksiyonu eklenecek
+      await fetchRecents(); // Listeyi yenile
+    } catch (error) {
+      console.error('Delete error:', error);
+    }
+  };
+
   return (
-    <View>
-      <Text>RecentsScreen</Text>
+    <View style={styles.container}>
+      <FlatList
+        data={recents}
+        keyExtractor={item => item.id.toString()}
+        renderItem={({item}) => (
+          <RecentCards
+            item={item}
+            onPress={() => handleRecentPress(item)}
+            onDelete={() => handleDelete(item.id)}
+          />
+        )}
+        refreshing={loading}
+        onRefresh={fetchRecents}
+      />
     </View>
   );
 }

@@ -7,7 +7,7 @@ import {useNavigation} from '@react-navigation/native';
 import {SCREENS} from '../../utils/SCREENS';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-export default function ContactCardItem({item}: {item: IUser}) {
+export default function ContactCardItem({item}: {item: IContact}) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (

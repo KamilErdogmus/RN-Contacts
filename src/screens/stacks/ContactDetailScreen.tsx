@@ -34,6 +34,22 @@ export default function ContactDetailScreen() {
     });
   };
 
+  const handleDelete = async () => {
+    try {
+      await deleteContact(route.params.contact.id);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Delete error:', error);
+    }
+  };
+
+  const handleEdit = () => {
+    navigation.navigate(SCREENS.ContactForm, {
+      mode: 'edit',
+      contact: route.params.contact,
+    });
+  };
+
   return (
     <View style={defaultScreenStyles.container}>
       <ScrollView>

@@ -30,6 +30,7 @@ export const contactCardItemStyles = StyleSheet.create({
   },
   infoContainer: {
     flex: 1,
+    marginLeft: 6,
     justifyContent: 'center',
   },
   name: {

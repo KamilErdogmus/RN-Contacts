@@ -3,25 +3,29 @@ import React, {useEffect} from 'react';
 import {defaultScreenStyles} from '../../../styles/defaultScreenStyles';
 import {useContactStore} from '../../../store/store';
 import {
-  addNewContact,
   createContactsTable,
   resetDatabase,
   createRecentsTable,
-  checkTableStructure,
   resetRecentsTable,
 } from '../../../database/Database';
 import ContactCardItem from '../../../components/contact/ContactCardItem';
 import FloatActionButton from '../../../components/contact/FloatActionButton';
+import {SCREENS} from '../../../utils/SCREENS';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 export default function ContactsScreen() {
   const {fetchContacts, contacts} = useContactStore();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     const initDatabase = async () => {
       try {
+        await resetDatabase();
+        await resetRecentsTable();
         await createContactsTable();
         await createRecentsTable();
-
         await fetchContacts();
       } catch (error) {
         console.error('Database initialization error:', error);
@@ -31,32 +35,8 @@ export default function ContactsScreen() {
     initDatabase();
   }, []);
 
-  const handleAddContact = async () => {
-    try {
-      const testContact = {
-        name: 'John',
-        surname: 'Doe',
-        phone: '555-0123',
-        email: 'john@example.com',
-        address: '123 Main St',
-        job: 'Developer',
-      };
-
-      console.log('Adding contact:', testContact);
-
-      await addNewContact(
-        testContact.name,
-        testContact.surname,
-        testContact.phone,
-        testContact.email,
-        testContact.address,
-        testContact.job,
-      );
-
-      await fetchContacts();
-    } catch (error) {
-      console.error('Failed to add contact:', error);
-    }
+  const handleAddContact = () => {
+    navigation.navigate(SCREENS.ContactForm, {mode: 'add'});
   };
 
   return (
