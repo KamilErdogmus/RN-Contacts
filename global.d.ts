@@ -64,4 +64,21 @@ declare global {
     theme: ThemeType;
     toggleTheme: () => void;
   }
+
+  interface ThemeColors {
+    background: string;
+    text: string;
+    card: string;
+    border: string;
+    secondary: string;
+    hint: string;
+    shadow: string;
+    ripple: string;
+    success: string;
+    danger: string;
+    primary: string;
+    white: string;
+    control: string;
+    basic: string;
+  }
 }

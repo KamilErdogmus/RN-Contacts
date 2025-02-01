@@ -1,4 +1,4 @@
-import {View, Text, ScrollView} from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import React from 'react';
 import {defaultScreenStyles} from '../../styles/defaultScreenStyles';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
@@ -11,9 +11,11 @@ import CircleIconButton from '../../components/ui/CircleIconButton';
 import {COLORS} from '../../theme/COLORS';
 import Icon from 'react-native-vector-icons/Entypo';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {addRecentCall} from '../../database/Database';
+import {addRecentCall, updateContact} from '../../database/Database';
+import {useThemeColors} from '../../store/themeStore';
 
 export default function ContactDetailScreen() {
+  const theme = useThemeColors();
   const route = useRoute<RouteProp<RootStackParamList, SCREENS.Detail>>();
   const {phone, address, name, surname, email, job, id} = route.params.contact;
   const navigation =
@@ -43,51 +45,110 @@ export default function ContactDetailScreen() {
     }
   };
 
-  const handleEdit = () => {
-    navigation.navigate(SCREENS.ContactForm, {
-      mode: 'edit',
-      contact: route.params.contact,
-    });
+  const handleEdit = async () => {
+    try {
+      await updateContact(route.params.contact.id as number, {
+        name,
+        surname,
+        phone,
+        email,
+        address,
+        job,
+      });
+
+      navigation.goBack();
+    } catch (error) {
+      console.error('Edit error:', error);
+    }
   };
 
   return (
-    <View style={defaultScreenStyles.container}>
-      <ScrollView>
-        <View style={contactDetailScreenStyles.userContainer}>
-          <View style={contactDetailScreenStyles.upperHalf} />
-
-          <View style={contactDetailScreenStyles.lowerHalf} />
-
+    <View
+      style={[
+        defaultScreenStyles.container,
+        {backgroundColor: theme.colors.background},
+      ]}>
+      <ScrollView
+        contentContainerStyle={contactDetailScreenStyles.contentContainer}>
+        <View style={[contactDetailScreenStyles.userContainer]}>
           <View style={contactDetailScreenStyles.userInfoContainer}>
             <Avatar name={name} surname={surname} size={sizes.LARGE} />
-            <Text style={contactDetailScreenStyles.fullName}>
+            <Text
+              style={[
+                contactDetailScreenStyles.fullName,
+                {color: theme.colors.text},
+              ]}>
               {convertFullName(name, surname)}
             </Text>
-            <Text style={contactDetailScreenStyles.job}>{job}</Text>
+            <Text
+              style={[
+                contactDetailScreenStyles.job,
+                {color: theme.colors.secondary},
+              ]}>
+              {job}
+            </Text>
           </View>
         </View>
         <View style={contactDetailScreenStyles.buttonContainer}>
           <CircleIconButton
-            color={COLORS.GRAY}
-            icon={<Icon size={32} name="star" color={COLORS.WHITE} />}
+            color="#344cb7"
+            icon={<Icon size={32} name="star" color="#FFFFFF" />}
           />
           <CircleIconButton
-            color={COLORS.ERROR}
-            icon={<Icon size={32} name="message" color={COLORS.WHITE} />}
+            color="#F44336"
+            icon={<Icon size={32} name="message" color="#FFFFFF" />}
           />
-
           <CircleIconButton
             onPress={handleCall}
-            color={COLORS.SUCCESS}
-            icon={<Icon size={32} name="phone" color={COLORS.WHITE} />}
+            color="#4CAF50"
+            icon={<Icon size={32} name="phone" color="#FFFFFF" />}
           />
         </View>
         {contactInfo.map(item => (
-          <View style={contactDetailScreenStyles.infoContainer} key={item.id}>
-            <Text style={contactDetailScreenStyles.title}>{item.title}</Text>
-            <Text style={contactDetailScreenStyles.phone}>{item.value}</Text>
+          <View
+            style={[
+              contactDetailScreenStyles.infoContainer,
+              {backgroundColor: theme.colors.card},
+            ]}
+            key={item.id}>
+            <Text
+              style={[
+                contactDetailScreenStyles.title,
+                {color: theme.colors.text},
+              ]}>
+              {item.title}
+            </Text>
+            <Text
+              style={[
+                contactDetailScreenStyles.phone,
+                {color: theme.colors.text},
+              ]}>
+              {item.value}
+            </Text>
           </View>
         ))}
+
+        <View style={contactDetailScreenStyles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={[
+              contactDetailScreenStyles.actionButton,
+              {backgroundColor: COLORS.ERROR},
+            ]}
+            onPress={handleDelete}>
+            <Text style={contactDetailScreenStyles.actionButtonText}>
+              Delete
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              contactDetailScreenStyles.actionButton,
+              {backgroundColor: COLORS.PRIMARY},
+            ]}
+            onPress={handleEdit}>
+            <Text style={contactDetailScreenStyles.actionButtonText}>Edit</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );

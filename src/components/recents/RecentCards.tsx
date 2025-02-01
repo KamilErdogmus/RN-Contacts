@@ -63,14 +63,21 @@ export default function RecentCards({
     });
 
     return (
-      <Animated.View style={[styles.deleteAction, {transform: [{scale}]}]}>
+      <Animated.View
+        style={[
+          styles.deleteAction,
+          {
+            transform: [{scale}],
+            backgroundColor: theme.colors.danger,
+          },
+        ]}>
         <Pressable
           onPress={() => {
             swipeableRef.current?.close();
             onDelete?.();
           }}
           style={styles.deleteButton}>
-          <Feather name="trash" size={24} color={theme.colors.control} />
+          <Feather name="trash" size={24} color={theme.colors.white} />
         </Pressable>
       </Animated.View>
     );
@@ -84,9 +91,9 @@ export default function RecentCards({
         rightThreshold={40}
         overshootRight={false}>
         <Pressable
-          style={styles.container}
+          style={[styles.container, {backgroundColor: theme.colors.card}]}
           onPress={onPress}
-          android_ripple={{color: theme.colors.basic}}>
+          android_ripple={{color: theme.colors.ripple}}>
           <View style={styles.avatarContainer}>
             <Avatar
               name={item.name}
@@ -99,7 +106,7 @@ export default function RecentCards({
             <Text style={[styles.name, {color: theme.colors.text}]}>
               {convertFullName(item.name, item.surname)}
             </Text>
-            <Text style={[styles.phone, {color: theme.colors.text}]}>
+            <Text style={[styles.phone, {color: theme.colors.secondary}]}>
               {item.phone}
             </Text>
             <Text style={[styles.date, {color: theme.colors.hint}]}>

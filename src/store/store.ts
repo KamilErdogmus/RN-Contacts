@@ -1,5 +1,4 @@
 import {create} from 'zustand';
-import {IContactState} from './types';
 import {addRecentCall, getContacts, getRecents} from '../database/Database';
 
 export const useContactStore = create<IContactState>()(set => ({

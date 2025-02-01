@@ -1,24 +1,22 @@
+// components/router/TabBarIcon.tsx
 import React from 'react';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {useThemeColors} from '../../store/themeStore';
 import {SCREENS} from '../../utils/SCREENS';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 
-interface IProps {
-  name: SCREENS;
-  size: number;
-  focused: boolean;
-}
+const TabBarIcon = ({focused, name, size}) => {
+  const {colors} = useThemeColors();
 
-export default function TabBarIcon({name, size, focused}: IProps) {
   const getIconName = () => {
     switch (name) {
       case SCREENS.Recent:
-        return 'history';
+        return focused ? 'time' : 'time-outline';
       case SCREENS.Contacts:
-        return 'contacts';
+        return focused ? 'people' : 'people-outline';
       case SCREENS.Favorites:
-        return 'favorite';
+        return focused ? 'star' : 'star-outline';
       default:
-        return 'error';
+        return 'help-outline';
     }
   };
 
@@ -26,7 +24,9 @@ export default function TabBarIcon({name, size, focused}: IProps) {
     <Icon
       name={getIconName()}
       size={size}
-      color={focused ? '#344cb7' : '#7e99a3'}
+      color={focused ? colors.PRIMARY : colors.secondary}
     />
   );
-}
+};
+
+export default TabBarIcon;

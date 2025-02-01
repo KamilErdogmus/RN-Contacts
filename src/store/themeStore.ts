@@ -14,11 +14,8 @@ export const useThemeColors = () => {
 
   return {
     colors: {
-      ...COLORS,
-      background: theme === 'light' ? '#FFFFFF' : '#222B45',
-      text: theme === 'light' ? '#000000' : '#FFFFFF',
-      card: theme === 'light' ? '#FFFFFF' : '#1A2138',
-      border: theme === 'light' ? '#E4E9F2' : '#101426',
+      ...COLORS[theme],
+      PRIMARY: COLORS.PRIMARY,
     },
   };
 };

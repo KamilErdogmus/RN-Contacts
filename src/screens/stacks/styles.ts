@@ -3,25 +3,10 @@ import {height} from '../../constants/constants';
 import {COLORS} from '../../theme/COLORS';
 
 export const contactDetailScreenStyles = StyleSheet.create({
+  contentContainer: {paddingBottom: 30},
   userContainer: {
     height: height * 0.2,
     position: 'relative',
-  },
-  upperHalf: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-    backgroundColor: COLORS.WARNING,
-  },
-  lowerHalf: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '50%',
-    backgroundColor: COLORS.WHITE,
   },
   userInfoContainer: {
     position: 'absolute',
@@ -52,7 +37,6 @@ export const contactDetailScreenStyles = StyleSheet.create({
     backgroundColor: COLORS.LIGHT_GRAY,
     margin: 8,
     borderRadius: 8,
-
     padding: 10,
     paddingLeft: 16,
     justifyContent: 'center',
@@ -64,14 +48,35 @@ export const contactDetailScreenStyles = StyleSheet.create({
     textTransform: 'uppercase',
     fontWeight: '700',
   },
-  phone: {fontSize: 20},
+  phone: {
+    fontSize: 20,
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export const callingScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.DIALING,
     paddingHorizontal: 20,
+    backgroundColor: COLORS.CALLING,
   },
   userInfo: {
     alignItems: 'center',

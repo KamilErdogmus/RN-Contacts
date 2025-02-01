@@ -3,16 +3,16 @@ import {useThemeColors} from '../../store/themeStore';
 
 export const useRecentCardStyles = () => {
   const theme = useThemeColors();
+
   return StyleSheet.create({
     container: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: theme.colors.card,
       marginHorizontal: 8,
       padding: 8,
       marginVertical: 12,
       borderRadius: 12,
-      shadowColor: theme.colors.text,
+      shadowColor: theme.colors.shadow,
       shadowOffset: {
         width: 0,
         height: 2,
@@ -46,14 +46,12 @@ export const useRecentCardStyles = () => {
       fontSize: 12,
     },
     deleteAction: {
-      backgroundColor: theme.colors.danger,
       justifyContent: 'center',
       alignItems: 'center',
       width: 70,
       marginHorizontal: 8,
       marginVertical: 12,
       borderRadius: 12,
-      shadowColor: theme.colors.shadow,
       shadowOffset: {
         width: 0,
         height: 2,

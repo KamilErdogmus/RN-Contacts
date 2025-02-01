@@ -3,6 +3,7 @@ import React from 'react';
 import {contactCardItemStyles} from './styles';
 import {getInitialLetters} from '../../utils/convertFullName';
 import {sizes, width} from '../../constants/constants';
+import {useThemeColors} from '../../store/themeStore';
 
 export default function Avatar({
   name,
@@ -25,6 +26,7 @@ export default function Avatar({
         return width * 0.16;
     }
   };
+  const {colors} = useThemeColors();
   const containerSize = getSize();
   return (
     <View
@@ -33,9 +35,10 @@ export default function Avatar({
         {
           height: containerSize,
           width: containerSize,
+          backgroundColor: colors.PRIMARY,
         },
       ]}>
-      <Text style={contactCardItemStyles.avatarText}>
+      <Text style={[contactCardItemStyles.avatarText, {color: colors.white}]}>
         {getInitialLetters(name, surname)}
       </Text>
     </View>

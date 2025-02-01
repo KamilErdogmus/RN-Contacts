@@ -107,8 +107,14 @@ export const ContactForm = ({
           )}
           <TouchableOpacity
             onPress={() => handleSubmit()}
-            style={styles.submitButton}>
-            <Text style={styles.submitButtonText}>{submitText}</Text>
+            style={[
+              styles.submitButton,
+              {backgroundColor: theme.colors.PRIMARY},
+            ]}>
+            <Text
+              style={[styles.submitButtonText, {color: theme.colors.white}]}>
+              {submitText}
+            </Text>
           </TouchableOpacity>
         </View>
       )}

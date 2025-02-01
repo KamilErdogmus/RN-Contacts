@@ -8,12 +8,13 @@ import {useNavigation} from '@react-navigation/native';
 import {deleteRecent, getContactById} from '../../../database/Database';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {recentScreenStyles as styles} from './styles';
+import {useThemeColors} from '../../../store/themeStore';
 
 export default function RecentsScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {recents, fetchRecents, loading} = useContactStore();
-
+  const theme = useThemeColors();
   useEffect(() => {
     fetchRecents();
   }, [fetchRecents]);
@@ -37,7 +38,8 @@ export default function RecentsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, {backgroundColor: theme.colors.background}]}>
       <FlatList
         data={recents}
         keyExtractor={item => item.id.toString()}

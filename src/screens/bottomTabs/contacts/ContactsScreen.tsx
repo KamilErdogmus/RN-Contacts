@@ -13,11 +13,13 @@ import FloatActionButton from '../../../components/contact/FloatActionButton';
 import {SCREENS} from '../../../utils/SCREENS';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {useThemeColors} from '../../../store/themeStore';
 
 export default function ContactsScreen() {
   const {fetchContacts, contacts} = useContactStore();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const theme = useThemeColors();
 
   useEffect(() => {
     const initDatabase = async () => {
@@ -40,9 +42,13 @@ export default function ContactsScreen() {
   };
 
   return (
-    <View style={defaultScreenStyles.container}>
+    <View
+      style={[
+        defaultScreenStyles.container,
+        {backgroundColor: theme.colors.background},
+      ]}>
       <FlatList
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item, index) => index.toString()}
         data={contacts}
         renderItem={({item}) => <ContactCardItem item={item} />}
       />

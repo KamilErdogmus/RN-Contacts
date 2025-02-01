@@ -390,6 +390,31 @@ const updateContact = async (id: number, values: IContact): Promise<void> => {
     }
   });
 };
+const deleteContact = async (id: number): Promise<void> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const database = await getDB();
+      database.transaction((txn: Transaction) => {
+        txn.executeSql(
+          'DELETE FROM users WHERE id = ?',
+          [id],
+          (_: Transaction, _res: ResultSet) => {
+            console.log('Contact deleted successfully');
+            resolve();
+          },
+          (_: Transaction, error: SQLite.SQLError): boolean => {
+            console.error('SQL delete error:', error);
+            reject(error);
+            return false;
+          },
+        );
+      });
+    } catch (error) {
+      console.error('General database error:', error);
+      reject(error);
+    }
+  });
+};
 export {
   createContactsTable,
   createRecentsTable,
@@ -400,6 +425,7 @@ export {
   getContactById,
   resetDatabase,
   resetRecentsTable,
+  deleteContact,
   deleteRecent,
   updateContact,
   checkTableStructure,
