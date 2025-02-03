@@ -4,7 +4,15 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import {useThemeColors} from '../../store/themeStore';
 import {SCREENS} from '../../utils/SCREENS';
 
-const TabBarIcon = ({focused, name, size}) => {
+const TabBarIcon = ({
+  focused,
+  name,
+  size,
+}: {
+  focused: boolean;
+  name: string;
+  size: number;
+}) => {
   const {colors} = useThemeColors();
 
   const getIconName = () => {

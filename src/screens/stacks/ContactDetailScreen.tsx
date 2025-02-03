@@ -1,5 +1,5 @@
-import {View, Text, ScrollView, TouchableOpacity} from 'react-native';
-import React from 'react';
+import {View, Text, TouchableOpacity, Animated} from 'react-native';
+import React, {useEffect, useState} from 'react';
 import {defaultScreenStyles} from '../../styles/defaultScreenStyles';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {SCREENS} from '../../utils/SCREENS';
@@ -13,11 +13,15 @@ import Icon from 'react-native-vector-icons/Entypo';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {
   addRecentCall,
+  addToFavorites,
   deleteContact,
+  getFavorites,
+  removeFromFavorites,
   updateContact,
 } from '../../database/Database';
 import {useThemeColors} from '../../store/themeStore';
 import Toast from 'react-native-toast-message';
+import {useContactStore} from '../../store/store';
 
 export default function ContactDetailScreen() {
   const theme = useThemeColors();
@@ -25,17 +29,20 @@ export default function ContactDetailScreen() {
   const {phone, address, name, surname, email, job, id} = route.params.contact;
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [isFavorite, setIsFavorite] = useState(false);
+  const scrollY = new Animated.Value(0);
+  const {fetchFavorites} = useContactStore();
   const contactInfo = [
     {title: 'Name', value: name, id: 5},
     {title: 'Surname', value: surname, id: 6},
     {title: 'Phone', value: phone, id: 11},
-    {title: 'Address', value: address, phone, id: 12},
+    {title: 'Address', value: address, id: 12},
     {title: 'Email', value: email, id: 13},
     {title: 'Job', value: job, id: 14},
   ];
-
+  const fullName = convertFullName(name, surname);
   const handleCall = () => {
-    addRecentCall(new Date().toDateString(), id);
+    addRecentCall(id as number);
     navigation.navigate(SCREENS.Calling, {
       contact: route.params.contact,
     });
@@ -53,7 +60,6 @@ export default function ContactDetailScreen() {
       });
       navigation.goBack();
     } catch (error) {
-      console.error('Delete error:', error);
       Toast.show({
         type: 'error',
         text1: 'Delete Failed',
@@ -66,14 +72,18 @@ export default function ContactDetailScreen() {
 
   const handleEdit = async () => {
     try {
-      await updateContact(route.params.contact.id as number, {
-        name,
-        surname,
-        phone,
-        email,
-        address,
-        job,
-      });
+      await updateContact(
+        route.params.contact.id as number,
+        {
+          id: route.params.contact.id,
+          name,
+          surname,
+          phone,
+          email,
+          address,
+          job,
+        } as const,
+      );
       Toast.show({
         type: 'success',
         text1: 'Contact Updated',
@@ -83,7 +93,6 @@ export default function ContactDetailScreen() {
       });
       navigation.goBack();
     } catch (error) {
-      console.error('Edit error:', error);
       Toast.show({
         type: 'error',
         text1: 'Update Failed',
@@ -93,6 +102,48 @@ export default function ContactDetailScreen() {
       });
     }
   };
+  const handleToggleFavorite = async () => {
+    try {
+      if (isFavorite) {
+        await removeFromFavorites(id as number);
+        setIsFavorite(false);
+        Toast.show({
+          type: 'success',
+          text1: 'Removed from Favorites',
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
+      } else {
+        await addToFavorites(id as number);
+        setIsFavorite(true);
+        Toast.show({
+          type: 'success',
+          text1: 'Added to Favorites',
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
+      }
+      await fetchFavorites();
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Operation Failed',
+        text2: 'Please try again',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+    }
+  };
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      try {
+        const favorites = await getFavorites();
+        setIsFavorite(favorites.some(fav => fav.id === id));
+      } catch {}
+    };
+
+    checkFavoriteStatus();
+  }, [id]);
 
   return (
     <View
@@ -100,7 +151,12 @@ export default function ContactDetailScreen() {
         defaultScreenStyles.container,
         {backgroundColor: theme.colors.background},
       ]}>
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={Animated.event(
+          [{nativeEvent: {contentOffset: {y: scrollY}}}],
+          {useNativeDriver: true},
+        )}
+        scrollEventThrottle={16}
         contentContainerStyle={contactDetailScreenStyles.contentContainer}>
         <View style={[contactDetailScreenStyles.userContainer]}>
           <View style={contactDetailScreenStyles.userInfoContainer}>
@@ -110,7 +166,7 @@ export default function ContactDetailScreen() {
                 contactDetailScreenStyles.fullName,
                 {color: theme.colors.text},
               ]}>
-              {convertFullName(name, surname)}
+              {fullName}
             </Text>
             <Text
               style={[
@@ -123,8 +179,15 @@ export default function ContactDetailScreen() {
         </View>
         <View style={contactDetailScreenStyles.buttonContainer}>
           <CircleIconButton
+            onPress={handleToggleFavorite}
             color="#344cb7"
-            icon={<Icon size={32} name="star" color="#FFFFFF" />}
+            icon={
+              <Icon
+                size={32}
+                name={isFavorite ? 'star' : 'star-outlined'}
+                color="#FFD700"
+              />
+            }
           />
           <CircleIconButton
             color="#F44336"
@@ -181,7 +244,7 @@ export default function ContactDetailScreen() {
             <Text style={contactDetailScreenStyles.actionButtonText}>Edit</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }

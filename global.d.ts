@@ -48,11 +48,20 @@ declare global {
 
   interface IContactState {
     contacts: IContact[];
+    currentDetailName: string;
+    favorites: IContact[];
     recents: RecentWithContact[];
     loading: boolean;
     error: string | null;
+    searchQuery: string;
+    filteredContacts: IContact[];
+    setCurrentDetailName: (name: string) => void;
+    setSearchQuery: (query: string) => void;
     fetchContacts: () => Promise<void>;
+    fetchFavorites: () => Promise<void>;
     fetchRecents: () => Promise<void>;
+    addToFavorites: (userId: number) => Promise<void>;
+    removeFromFavorites: (userId: number) => Promise<void>;
     addRecent: (recent_id: number, callType: CallType) => Promise<void>;
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;

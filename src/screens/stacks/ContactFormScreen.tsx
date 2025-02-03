@@ -48,7 +48,6 @@ export default function ContactFormScreen() {
       await fetchContacts();
       navigation.goBack();
     } catch (error) {
-      console.error(`Failed to ${mode} contact:`, error);
       Toast.show({
         type: 'error',
         text1: `${isEditMode ? 'Update' : 'Add'} Failed`,

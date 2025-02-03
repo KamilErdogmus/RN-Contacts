@@ -4,6 +4,7 @@ import {contactCardItemStyles} from './styles';
 import {getInitialLetters} from '../../utils/convertFullName';
 import {sizes, width} from '../../constants/constants';
 import {useThemeColors} from '../../store/themeStore';
+import {COLORS} from '../../theme/COLORS';
 
 export default function Avatar({
   name,
@@ -35,7 +36,7 @@ export default function Avatar({
         {
           height: containerSize,
           width: containerSize,
-          backgroundColor: colors.PRIMARY,
+          backgroundColor: COLORS.AVATAR,
         },
       ]}>
       <Text style={[contactCardItemStyles.avatarText, {color: colors.white}]}>

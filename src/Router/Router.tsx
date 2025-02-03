@@ -7,10 +7,12 @@ import CallingScreen from '../screens/stacks/CallingScreen';
 import ContactFormScreen from '../screens/stacks/ContactFormScreen';
 import {ThemeToggleButton} from '../components/router/ThemeToggleButton';
 import {useThemeColors} from '../store/themeStore';
+import {useContactStore} from '../store/store';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function Router() {
+  const {currentDetailName} = useContactStore();
   const theme = useThemeColors();
 
   const screenOptions = {
@@ -32,6 +34,7 @@ export default function Router() {
       <Stack.Screen
         options={{
           headerShown: true,
+          headerTitle: currentDetailName,
           headerStyle: {
             backgroundColor: theme.colors.card,
           },

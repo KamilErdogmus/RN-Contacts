@@ -9,6 +9,7 @@ export const COLORS: Colors = {
   LIGHT_GRAY: '#F5F5F5',
   TEXT_PRIMARY: '#212121',
   ORANGE: '#f2a233',
+  AVATAR: '#00BFd6',
 
   light: {
     background: '#FFFFFF',
@@ -47,6 +48,7 @@ export const COLORS: Colors = {
 
 interface Colors {
   PRIMARY: string;
+  AVATAR: string;
   ERROR: string;
   SUCCESS: string;
   WHITE: string;

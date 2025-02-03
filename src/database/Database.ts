@@ -30,11 +30,8 @@ const createContactsTable = async (): Promise<void> => {
         job VARCHAR(500)
       )`,
       [],
-      (_: Transaction, _res: ResultSet) => {
-        console.log('Contacts tablo başarıyla oluşturuldu');
-      },
-      (_: Transaction, error: SQLite.SQLError): boolean => {
-        console.error('Tablo oluşturulurken hata:', error);
+      (_: Transaction, _res: ResultSet) => {},
+      (_: Transaction, _error: SQLite.SQLError): boolean => {
         return false;
       },
     );
@@ -56,11 +53,8 @@ const createRecentsTable = async (): Promise<void> => {
           ON UPDATE CASCADE
       )`,
       [],
-      (_: Transaction, _res: ResultSet) => {
-        console.log('Recents tablo başarıyla oluşturuldu');
-      },
-      (_: Transaction, error: SQLite.SQLError): boolean => {
-        console.error('Tablo oluşturulurken hata:', error);
+      (_: Transaction, _res: ResultSet) => {},
+      (_: Transaction, _error: SQLite.SQLError): boolean => {
         return false;
       },
     );
@@ -80,18 +74,16 @@ const getContacts = async (): Promise<IContact[]> => {
             for (let i = 0; i < res.rows.length; i++) {
               rows.push(res.rows.item(i));
             }
-            console.log('Veritabanından gelen veriler:', rows);
+
             resolve(rows);
           },
           (_: Transaction, error: SQLite.SQLError): boolean => {
-            console.error('SQL sorgu hatası:', error);
             reject(error);
             return false;
           },
         );
       });
     } catch (error) {
-      console.error('Genel veritabanı hatası:', error);
       reject(error);
     }
   });
@@ -147,59 +139,30 @@ const addNewContact = async (
     try {
       const database = await getDB();
 
-      // Debug: Parametre kontrolü
-      console.log('Eklenecek veriler:', {
-        name,
-        surname,
-        phone,
-        email,
-        address,
-        job,
-      });
-
       database.transaction(
         (txn: Transaction) => {
           const query =
             'INSERT INTO users (name, surname, phone, email, address, job) VALUES (?, ?, ?, ?, ?, ?)';
           const params = [name, surname, phone, email, address, job];
 
-          // Debug: SQL sorgusu
-          console.log('SQL Query:', query);
-          console.log('Parameters:', params);
-
           txn.executeSql(
             query,
             params,
-            (_: Transaction, result: ResultSet) => {
-              // Debug: Başarılı sonuç
-              console.log('Insert result:', result);
-              console.log('Inserted ID:', result.insertId);
+            (_: Transaction) => {
               resolve();
             },
             (_: Transaction, error: SQLite.SQLError): boolean => {
-              // Debug: SQL hatası
-              console.error('SQL Error:', {
-                code: error.code,
-                message: error.message,
-                query,
-                params,
-              });
               reject(error);
               return false;
             },
           );
         },
         error => {
-          // Debug: Transaction hatası
-          console.error('Transaction Error:', error);
           reject(error);
         },
-        () => {
-          console.log('Transaction successful');
-        },
+        () => {},
       );
     } catch (error) {
-      console.error('General Error:', error);
       reject(error);
     }
   });
@@ -213,11 +176,9 @@ const checkTableStructure = async () => {
         "PRAGMA table_info('users')",
         [],
         (_, result) => {
-          console.log('Tablo yapısı:', result.rows.raw());
           resolve(result.rows.raw());
         },
         (_, error) => {
-          console.error('Tablo yapısı kontrol hatası:', error);
           reject(error);
           return false;
         },
@@ -240,26 +201,20 @@ const addRecentCall = async (
             'INSERT INTO recents (recent_id, callType, duration) VALUES (?, ?, ?)',
             [recent_id, callType, duration],
             (_: Transaction, _res: ResultSet) => {
-              console.log('Arama geçmişine eklendi');
               resolve();
             },
             (_: Transaction, error: SQLite.SQLError): boolean => {
-              console.error('SQL sorgu hatası:', error);
               reject(error);
               return false;
             },
           );
         },
         error => {
-          console.error('Transaction hatası:', error);
           reject(error);
         },
-        () => {
-          console.log('Transaction başarılı');
-        },
+        () => {},
       );
     } catch (error) {
-      console.error('Genel veritabanı hatası:', error);
       reject(error);
     }
   });
@@ -273,11 +228,9 @@ const resetDatabase = async (): Promise<void> => {
         'DROP TABLE IF EXISTS users',
         [],
         () => {
-          console.log('Tablo silindi');
           createContactsTable().then(resolve).catch(reject);
         },
         (_, error) => {
-          console.error('Tablo silinirken hata:', error);
           reject(error);
           return false;
         },
@@ -294,11 +247,9 @@ const resetRecentsTable = async (): Promise<void> => {
         'DROP TABLE IF EXISTS recents',
         [],
         () => {
-          console.log('Recents tablosu silindi');
           createRecentsTable().then(resolve).catch(reject);
         },
         (_, error) => {
-          console.error('Tablo silinirken hata:', error);
           reject(error);
           return false;
         },
@@ -374,18 +325,15 @@ const updateContact = async (id: number, values: IContact): Promise<void> => {
             id,
           ],
           (_: Transaction, _res: ResultSet) => {
-            console.log('Contact updated successfully');
             resolve();
           },
           (_: Transaction, error: SQLite.SQLError): boolean => {
-            console.error('SQL update error:', error);
             reject(error);
             return false;
           },
         );
       });
     } catch (error) {
-      console.error('General database error:', error);
       reject(error);
     }
   });
@@ -399,18 +347,105 @@ const deleteContact = async (id: number): Promise<void> => {
           'DELETE FROM users WHERE id = ?',
           [id],
           (_: Transaction, _res: ResultSet) => {
-            console.log('Contact deleted successfully');
             resolve();
           },
           (_: Transaction, error: SQLite.SQLError): boolean => {
-            console.error('SQL delete error:', error);
             reject(error);
             return false;
           },
         );
       });
     } catch (error) {
-      console.error('General database error:', error);
+      reject(error);
+    }
+  });
+};
+
+const createFavoritesTable = async (): Promise<void> => {
+  const database = await getDB();
+  database.transaction((txn: Transaction) => {
+    txn.executeSql(
+      `CREATE TABLE IF NOT EXISTS favorites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER UNIQUE,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+      )`,
+      [],
+      (_: Transaction, _res: ResultSet) => {},
+      (_: Transaction, _error: SQLite.SQLError): boolean => {
+        return false;
+      },
+    );
+  });
+};
+
+const addToFavorites = async (userId: number): Promise<void> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const database = await getDB();
+      database.transaction((txn: Transaction) => {
+        txn.executeSql(
+          'INSERT OR IGNORE INTO favorites (user_id) VALUES (?)',
+          [userId],
+          () => resolve(),
+          (_, error) => {
+            reject(error);
+            return false;
+          },
+        );
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const removeFromFavorites = async (userId: number): Promise<void> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const database = await getDB();
+      database.transaction((txn: Transaction) => {
+        txn.executeSql(
+          'DELETE FROM favorites WHERE user_id = ?',
+          [userId],
+          () => resolve(),
+          (_, error) => {
+            reject(error);
+            return false;
+          },
+        );
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+const getFavorites = async (): Promise<IContact[]> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const database = await getDB();
+      database.transaction((txn: Transaction) => {
+        txn.executeSql(
+          `SELECT u.* FROM users u
+           INNER JOIN favorites f ON u.id = f.user_id`,
+          [],
+          (_, result) => {
+            const favorites = [];
+            for (let i = 0; i < result.rows.length; i++) {
+              favorites.push(result.rows.item(i));
+            }
+            resolve(favorites);
+          },
+          (_, error) => {
+            reject(error);
+            return false;
+          },
+        );
+      });
+    } catch (error) {
       reject(error);
     }
   });
@@ -428,5 +463,9 @@ export {
   deleteContact,
   deleteRecent,
   updateContact,
+  getFavorites,
+  addToFavorites,
+  createFavoritesTable,
+  removeFromFavorites,
   checkTableStructure,
 };

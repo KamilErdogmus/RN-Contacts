@@ -1,118 +1,87 @@
 import {View} from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {useContactStore} from '../../../store/store';
 import {FlatList} from 'react-native';
 import RecentCards from '../../../components/recents/RecentCards';
 import {SCREENS} from '../../../utils/SCREENS';
-import {useNavigation} from '@react-navigation/native';
-import {
-  deleteRecent,
-  getContactById,
-  addRecentCall,
-  getContacts,
-} from '../../../database/Database';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {deleteRecent, getContactById} from '../../../database/Database';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {recentScreenStyles as styles} from './styles';
 import {useThemeColors} from '../../../store/themeStore';
-import FloatActionButton from '../../../components/contact/FloatActionButton';
 import Toast from 'react-native-toast-message';
-
-const generateRandomDuration = () => {
-  return Math.floor(Math.random() * (300 - 5 + 1) + 5);
-};
-
-const callTypes: CallType[] = ['incoming', 'outgoing', 'missed'];
-const getRandomCallType = () => {
-  return callTypes[Math.floor(Math.random() * callTypes.length)];
-};
+import {convertFullName} from '../../../utils/convertFullName';
 
 export default function RecentsScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {recents, fetchRecents, loading} = useContactStore();
+  const {recents, fetchRecents, setCurrentDetailName} = useContactStore();
   const theme = useThemeColors();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchRecents();
+    }, [fetchRecents]),
+  );
 
   useEffect(() => {
-    fetchRecents();
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      fetchRecents();
+    });
+
+    return unsubscribe;
+  }, [navigation, fetchRecents]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchRecents();
+    setIsRefreshing(false);
   }, [fetchRecents]);
 
-  const handleRecentPress = async (recent: Recent) => {
-    try {
-      const contact = await getContactById(recent.recent_id);
-      navigation.navigate(SCREENS.Detail, {contact});
-    } catch (error) {
-      console.error('Contact details error:', error);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteRecent(id);
-      await fetchRecents();
-      Toast.show({
-        type: 'success',
-        text1: 'Recent Call Deleted',
-        text2: 'Call history entry has been removed',
-        position: 'bottom',
-        visibilityTime: 2000,
-      });
-    } catch (error) {
-      console.error('Delete error:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Delete Failed',
-        text2: 'Could not delete call history entry',
-        position: 'bottom',
-        visibilityTime: 2000,
-      });
-    }
-  };
-
-  const handleAddRandomRecent = async () => {
-    try {
-      const contacts = await getContacts();
-
-      if (contacts.length === 0) {
+  const handleRecentPress = useCallback(
+    async (recent: Recent) => {
+      try {
+        const contact = await getContactById(recent.recent_id);
+        setCurrentDetailName(convertFullName(contact.name, contact.surname));
+        navigation.navigate(SCREENS.Detail, {contact});
+      } catch (error) {
         Toast.show({
           type: 'error',
-          text1: 'No Contacts',
-          text2: 'Please add some contacts first',
+          text1: 'Error',
+          text2: 'Could not load contact details',
           position: 'bottom',
           visibilityTime: 2000,
         });
-        return;
       }
+    },
+    [navigation, setCurrentDetailName],
+  );
 
-      for (let i = 0; i < 5; i++) {
-        const randomContact =
-          contacts[Math.floor(Math.random() * contacts.length)];
-
-        const callType = getRandomCallType();
-        const duration = callType === 'missed' ? 0 : generateRandomDuration();
-
-        await addRecentCall(randomContact.id as number, callType, duration);
+  const handleDelete = useCallback(
+    async (id: number) => {
+      try {
+        await deleteRecent(id);
+        await fetchRecents();
+        Toast.show({
+          type: 'success',
+          text1: 'Recent Call Deleted',
+          text2: 'Call history entry has been removed',
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
+      } catch (error) {
+        Toast.show({
+          type: 'error',
+          text1: 'Delete Failed',
+          text2: 'Could not delete call history entry',
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
       }
-
-      await fetchRecents();
-
-      Toast.show({
-        type: 'success',
-        text1: 'Random Calls Added',
-        text2: '5 new random calls have been added to history',
-        position: 'bottom',
-        visibilityTime: 2000,
-      });
-    } catch (error) {
-      console.error('Failed to add random recents:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to Add Calls',
-        text2: 'Could not add random call history',
-        position: 'bottom',
-        visibilityTime: 2000,
-      });
-    }
-  };
+    },
+    [fetchRecents],
+  );
 
   return (
     <View
@@ -127,10 +96,12 @@ export default function RecentsScreen() {
             onDelete={() => handleDelete(item.id)}
           />
         )}
-        refreshing={loading}
-        onRefresh={fetchRecents}
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        onEndReachedThreshold={0.5}
+        maxToRenderPerBatch={10}
+        windowSize={10}
       />
-      <FloatActionButton onPress={handleAddRandomRecent} />
     </View>
   );
 }

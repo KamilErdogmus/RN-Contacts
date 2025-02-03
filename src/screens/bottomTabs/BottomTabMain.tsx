@@ -13,7 +13,6 @@ const Tab = createBottomTabNavigator<BottomTabParamList>();
 
 export default function BottomTabMain() {
   const theme = useThemeColors();
-
   const screenOptions = ({route}: {route: RouteProp<BottomTabParamList>}) => ({
     tabBarActiveTintColor: theme.colors.PRIMARY,
     tabBarInactiveTintColor: theme.colors.secondary,

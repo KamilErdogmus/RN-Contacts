@@ -17,7 +17,7 @@ export const ThemeToggleButton = () => {
       <Ionicons
         name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'}
         size={24}
-        color={theme === 'dark' ? '#FFFFFF' : '#000000'} // Zıt renkler
+        color={theme === 'dark' ? '#FFFFFF' : '#000000'}
       />
     </TouchableOpacity>
   );

@@ -69,4 +69,31 @@ export const contactCardItemStyles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 18,
   },
+  sectionHeader: {
+    padding: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    elevation: 2,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  sectionHeaderText: {
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 50,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+  },
 });

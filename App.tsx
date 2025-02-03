@@ -6,11 +6,10 @@ import {useThemeColors} from './src/store/themeStore';
 import Toast from 'react-native-toast-message';
 
 const App = () => {
-  const theme = useThemeColors();
+  const {colors} = useThemeColors();
 
   return (
-    <View
-      style={[styles.container, {backgroundColor: theme.colors.background}]}>
+    <View style={[styles.container, {backgroundColor: colors.background}]}>
       <NavigationContainer>
         <Router />
       </NavigationContainer>
