@@ -11,8 +11,13 @@ import CircleIconButton from '../../components/ui/CircleIconButton';
 import {COLORS} from '../../theme/COLORS';
 import Icon from 'react-native-vector-icons/Entypo';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {addRecentCall, updateContact} from '../../database/Database';
+import {
+  addRecentCall,
+  deleteContact,
+  updateContact,
+} from '../../database/Database';
 import {useThemeColors} from '../../store/themeStore';
+import Toast from 'react-native-toast-message';
 
 export default function ContactDetailScreen() {
   const theme = useThemeColors();
@@ -38,10 +43,24 @@ export default function ContactDetailScreen() {
 
   const handleDelete = async () => {
     try {
-      await deleteContact(route.params.contact.id);
+      await deleteContact(route.params.contact.id as number);
+      Toast.show({
+        type: 'success',
+        text1: 'Contact Deleted',
+        text2: 'Contact has been successfully deleted',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
       navigation.goBack();
     } catch (error) {
       console.error('Delete error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Delete Failed',
+        text2: 'Could not delete contact. Please try again.',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
     }
   };
 
@@ -55,10 +74,23 @@ export default function ContactDetailScreen() {
         address,
         job,
       });
-
+      Toast.show({
+        type: 'success',
+        text1: 'Contact Updated',
+        text2: 'Contact information has been updated',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
       navigation.goBack();
     } catch (error) {
       console.error('Edit error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Update Failed',
+        text2: 'Could not update contact. Please try again.',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
     }
   };
 

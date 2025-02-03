@@ -6,16 +6,17 @@ import {useThemeColors} from '../../store/themeStore';
 
 interface FloatActionButtonProps {
   onPress: () => void;
+  alt?: number;
 }
 
-const FloatActionButton = ({onPress}: FloatActionButtonProps) => {
+const FloatActionButton = ({onPress, alt = 24}: FloatActionButtonProps) => {
   const {colors} = useThemeColors();
 
   return (
     <View
       style={[
         contactCardItemStyles.btnContainer,
-        {shadowColor: colors.shadow},
+        {shadowColor: colors.shadow, bottom: alt},
       ]}>
       <Pressable
         onPress={onPress}

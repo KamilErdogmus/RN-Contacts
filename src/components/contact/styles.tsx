@@ -38,7 +38,7 @@ export const contactCardItemStyles = StyleSheet.create({
   },
   btnContainer: {
     position: 'absolute',
-    bottom: 24,
+
     right: 24,
     zIndex: 999,
     shadowOffset: {

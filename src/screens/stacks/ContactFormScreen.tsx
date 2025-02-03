@@ -6,13 +6,7 @@ import {useContactStore} from '../../store/store';
 import {addNewContact, updateContact} from '../../database/Database';
 import {useThemeColors} from '../../store/themeStore';
 import {SCREENS} from '../../utils/SCREENS';
-
-type ContactFormMode = 'add' | 'edit';
-
-interface ContactFormParams {
-  mode: ContactFormMode;
-  contact?: IContact;
-}
+import Toast from 'react-native-toast-message';
 
 export default function ContactFormScreen() {
   const navigation = useNavigation();
@@ -27,6 +21,13 @@ export default function ContactFormScreen() {
     try {
       if (isEditMode) {
         await updateContact(contact!.id!, values);
+        Toast.show({
+          type: 'success',
+          text1: 'Contact Updated',
+          text2: 'Contact information has been updated',
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
       } else {
         await addNewContact(
           values.name,
@@ -36,11 +37,27 @@ export default function ContactFormScreen() {
           values.address,
           values.job,
         );
+        Toast.show({
+          type: 'success',
+          text1: 'Contact Added',
+          text2: 'New contact has been added successfully',
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
       }
       await fetchContacts();
       navigation.goBack();
     } catch (error) {
       console.error(`Failed to ${mode} contact:`, error);
+      Toast.show({
+        type: 'error',
+        text1: `${isEditMode ? 'Update' : 'Add'} Failed`,
+        text2: `Could not ${
+          isEditMode ? 'update' : 'add'
+        } contact. Please try again.`,
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
     }
   };
 

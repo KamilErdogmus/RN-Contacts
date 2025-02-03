@@ -1,9 +1,9 @@
-// App.tsx
 import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {View, StyleSheet} from 'react-native';
 import Router from './src/Router/Router';
 import {useThemeColors} from './src/store/themeStore';
+import Toast from 'react-native-toast-message';
 
 const App = () => {
   const theme = useThemeColors();
@@ -14,6 +14,7 @@ const App = () => {
       <NavigationContainer>
         <Router />
       </NavigationContainer>
+      <Toast />
     </View>
   );
 };
