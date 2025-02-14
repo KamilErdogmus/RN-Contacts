@@ -17,7 +17,6 @@ import {
   deleteContact,
   getFavorites,
   removeFromFavorites,
-  updateContact,
 } from '../../database/Database';
 import {useThemeColors} from '../../store/themeStore';
 import Toast from 'react-native-toast-message';
@@ -26,31 +25,55 @@ import {useContactStore} from '../../store/store';
 export default function ContactDetailScreen() {
   const theme = useThemeColors();
   const route = useRoute<RouteProp<RootStackParamList, SCREENS.Detail>>();
-  const {phone, address, name, surname, email, job, id} = route.params.contact;
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [isFavorite, setIsFavorite] = useState(false);
   const scrollY = new Animated.Value(0);
-  const {fetchFavorites} = useContactStore();
+  const {fetchFavorites, contacts, setCurrentDetailName} = useContactStore();
+
+  const currentContact =
+    contacts.find(c => c.id === route.params.contact.id) ||
+    route.params.contact;
+  const fullName = convertFullName(currentContact.name, currentContact.surname);
+
+  useEffect(() => {
+    navigation.setParams({
+      headerTitle: fullName,
+    });
+  }, [navigation, fullName, currentContact]);
+
   const contactInfo = [
-    {title: 'Name', value: name, id: 5},
-    {title: 'Surname', value: surname, id: 6},
-    {title: 'Phone', value: phone, id: 11},
-    {title: 'Address', value: address, id: 12},
-    {title: 'Email', value: email, id: 13},
-    {title: 'Job', value: job, id: 14},
+    {title: 'Name', value: currentContact.name, id: 5},
+    {title: 'Surname', value: currentContact.surname, id: 6},
+    {title: 'Phone', value: currentContact.phone, id: 11},
+    {title: 'Address', value: currentContact.address, id: 12},
+    {title: 'Email', value: currentContact.email, id: 13},
+    {title: 'Job', value: currentContact.job, id: 14},
   ];
-  const fullName = convertFullName(name, surname);
+
+  useEffect(() => {
+    const updateTitle = async () => {
+      await Promise.resolve();
+      setCurrentDetailName(fullName);
+    };
+    updateTitle();
+  }, [
+    currentContact.name,
+    currentContact.surname,
+    setCurrentDetailName,
+    fullName,
+  ]);
+
   const handleCall = () => {
-    addRecentCall(id as number);
+    addRecentCall(currentContact.id as number);
     navigation.navigate(SCREENS.Calling, {
-      contact: route.params.contact,
+      contact: currentContact,
     });
   };
 
   const handleDelete = async () => {
     try {
-      await deleteContact(route.params.contact.id as number);
+      await deleteContact(currentContact.id as number);
       Toast.show({
         type: 'success',
         text1: 'Contact Deleted',
@@ -58,6 +81,7 @@ export default function ContactDetailScreen() {
         position: 'bottom',
         visibilityTime: 2000,
       });
+      useContactStore.getState().triggerRefresh();
       navigation.goBack();
     } catch (error) {
       Toast.show({
@@ -70,42 +94,17 @@ export default function ContactDetailScreen() {
     }
   };
 
-  const handleEdit = async () => {
-    try {
-      await updateContact(
-        route.params.contact.id as number,
-        {
-          id: route.params.contact.id,
-          name,
-          surname,
-          phone,
-          email,
-          address,
-          job,
-        } as const,
-      );
-      Toast.show({
-        type: 'success',
-        text1: 'Contact Updated',
-        text2: 'Contact information has been updated',
-        position: 'bottom',
-        visibilityTime: 2000,
-      });
-      navigation.goBack();
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Update Failed',
-        text2: 'Could not update contact. Please try again.',
-        position: 'bottom',
-        visibilityTime: 2000,
-      });
-    }
+  const handleEdit = () => {
+    navigation.navigate(SCREENS.ContactForm, {
+      mode: 'edit',
+      contact: currentContact,
+    });
   };
+
   const handleToggleFavorite = async () => {
     try {
       if (isFavorite) {
-        await removeFromFavorites(id as number);
+        await removeFromFavorites(currentContact.id as number);
         setIsFavorite(false);
         Toast.show({
           type: 'success',
@@ -114,7 +113,7 @@ export default function ContactDetailScreen() {
           visibilityTime: 2000,
         });
       } else {
-        await addToFavorites(id as number);
+        await addToFavorites(currentContact.id as number);
         setIsFavorite(true);
         Toast.show({
           type: 'success',
@@ -134,16 +133,17 @@ export default function ContactDetailScreen() {
       });
     }
   };
+
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       try {
         const favorites = await getFavorites();
-        setIsFavorite(favorites.some(fav => fav.id === id));
+        setIsFavorite(favorites.some(fav => fav.id === currentContact.id));
       } catch {}
     };
 
     checkFavoriteStatus();
-  }, [id]);
+  }, [currentContact.id]);
 
   return (
     <View
@@ -160,7 +160,11 @@ export default function ContactDetailScreen() {
         contentContainerStyle={contactDetailScreenStyles.contentContainer}>
         <View style={[contactDetailScreenStyles.userContainer]}>
           <View style={contactDetailScreenStyles.userInfoContainer}>
-            <Avatar name={name} surname={surname} size={sizes.LARGE} />
+            <Avatar
+              name={currentContact.name}
+              surname={currentContact.surname}
+              size={sizes.LARGE}
+            />
             <Text
               style={[
                 contactDetailScreenStyles.fullName,
@@ -173,7 +177,7 @@ export default function ContactDetailScreen() {
                 contactDetailScreenStyles.job,
                 {color: theme.colors.secondary},
               ]}>
-              {job}
+              {currentContact.job}
             </Text>
           </View>
         </View>

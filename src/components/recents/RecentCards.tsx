@@ -84,7 +84,7 @@ export default function RecentCards({
   };
 
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
+    <GestureHandlerRootView style={styles.flex}>
       <Swipeable
         ref={swipeableRef}
         renderRightActions={renderRightActions}

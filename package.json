@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "pw": "cd ios && pod install && cd .. && watchman watch-del-all"
+    "pws": "cd ios && pod install && cd .. && watchman watch-del-all && react-native start"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.1.1",
@@ -17,7 +17,7 @@
     "@react-navigation/native-stack": "^7.2.0",
     "formik": "^2.4.6",
     "react": "18.3.1",
-    "react-native": "0.77.0",
+    "react-native": "0.77.1",
     "react-native-gesture-handler": "^2.22.1",
     "react-native-reanimated": "^3.16.7",
     "react-native-safe-area-context": "^5.1.0",

@@ -8,27 +8,6 @@ import {
   removeFromFavorites,
 } from '../database/Database';
 
-interface IContactState {
-  contacts: IContact[];
-  recents: (Recent & IContact)[];
-  favorites: IContact[];
-  searchQuery: string;
-  filteredContacts: IContact[];
-  loading: boolean;
-  error: string | null;
-  currentDetailName: string;
-  setCurrentDetailName: (name: string) => void;
-  fetchContacts: () => Promise<void>;
-  fetchRecents: () => Promise<void>;
-  setSearchQuery: (query: string) => void;
-  fetchFavorites: () => Promise<void>;
-  addRecent: (recent_id: number) => Promise<void>;
-  addToFavorites: (userId: number) => Promise<void>;
-  removeFromFavorites: (userId: number) => Promise<void>;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
-}
-
 export const useContactStore = create<IContactState>((set, get) => ({
   contacts: [],
   recents: [],
@@ -37,22 +16,45 @@ export const useContactStore = create<IContactState>((set, get) => ({
   filteredContacts: [],
   loading: false,
   error: null,
+  refreshTrigger: 0,
   currentDetailName: '',
 
-  setCurrentDetailName: (name: string) => set({currentDetailName: name}),
+  setCurrentDetailName: (name: string) =>
+    set(state => ({...state, currentDetailName: name})),
 
   fetchContacts: async () => {
     set({loading: true, error: null});
     try {
       const result = await getContacts();
+      set(state => ({
+        ...state,
+        contacts: result,
+        loading: false,
+        error: null,
+        filteredContacts: state.searchQuery
+          ? result.filter(contact => {
+              const searchTerm = state.searchQuery.toLowerCase().trim();
+              const name = contact.name?.toLowerCase() || '';
+              const surname = contact.surname?.toLowerCase() || '';
+              const phone = contact.phone?.toString() || '';
 
-      set({contacts: result, loading: false});
+              return (
+                name.includes(searchTerm) ||
+                surname.includes(searchTerm) ||
+                phone.includes(searchTerm)
+              );
+            })
+          : [],
+      }));
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'An unknown error occurred';
-      set({error: errorMessage, loading: false});
+      set(state => ({...state, error: errorMessage, loading: false}));
     }
   },
+
+  triggerRefresh: () =>
+    set(state => ({...state, refreshTrigger: state.refreshTrigger + 1})),
 
   fetchRecents: async () => {
     set({loading: true, error: null});

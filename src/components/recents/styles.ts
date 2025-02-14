@@ -5,6 +5,7 @@ export const useRecentCardStyles = () => {
   const theme = useThemeColors();
 
   return StyleSheet.create({
+    flex: {flex: 1},
     container: {
       flexDirection: 'row',
       alignItems: 'center',

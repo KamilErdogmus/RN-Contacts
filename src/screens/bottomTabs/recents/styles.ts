@@ -4,7 +4,6 @@ import {COLORS} from '../../../theme/COLORS';
 export const recentScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.BACKGROUND,
   },
   emptyText: {
     textAlign: 'center',

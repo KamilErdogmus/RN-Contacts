@@ -38,7 +38,7 @@ const EmptyListComponent = () => {
 
   return (
     <View style={styles.emptyContainer}>
-      <Icon name="star-outline" size={50} color={colors.secondary} />
+      <Icon name="star" size={50} color={colors.secondary} />
       <Text style={[styles.emptyTitle, {color: colors.text}]}>
         No Favorites Yet
       </Text>

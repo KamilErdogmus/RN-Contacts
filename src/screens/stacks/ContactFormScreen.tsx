@@ -7,56 +7,64 @@ import {addNewContact, updateContact} from '../../database/Database';
 import {useThemeColors} from '../../store/themeStore';
 import {SCREENS} from '../../utils/SCREENS';
 import Toast from 'react-native-toast-message';
+import {FormikHelpers} from 'formik';
+import {convertFullName} from '../../utils/convertFullName';
 
 export default function ContactFormScreen() {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, SCREENS.ContactForm>>();
-  const {fetchContacts} = useContactStore();
+
   const theme = useThemeColors();
 
   const {mode, contact} = route.params;
   const isEditMode = mode === 'edit';
 
-  const handleSubmit = async (values: IContact) => {
+  const handleSubmit = async (
+    values: IContact,
+    helpers: FormikHelpers<IContact>,
+  ) => {
     try {
-      if (isEditMode) {
-        await updateContact(contact!.id!, values);
+      if (isEditMode && contact) {
+        await updateContact(contact.id as number, values);
+        await useContactStore.getState().fetchContacts();
+        const updatedFullName = convertFullName(values.name, values.surname);
+        useContactStore.getState().setCurrentDetailName(updatedFullName);
+
         Toast.show({
           type: 'success',
           text1: 'Contact Updated',
-          text2: 'Contact information has been updated',
+          text2: 'Contact has been successfully updated',
           position: 'bottom',
           visibilityTime: 2000,
         });
+
+        setTimeout(() => {
+          navigation.goBack();
+        }, 100);
       } else {
-        await addNewContact(
-          values.name,
-          values.surname,
-          values.phone,
-          values.email,
-          values.address,
-          values.job,
-        );
+        await addNewContact(values);
+        await useContactStore.getState().fetchContacts();
+        useContactStore.getState().triggerRefresh();
+
         Toast.show({
           type: 'success',
           text1: 'Contact Added',
-          text2: 'New contact has been added successfully',
+          text2: 'New contact has been successfully added',
           position: 'bottom',
           visibilityTime: 2000,
         });
+
+        navigation.goBack();
       }
-      await fetchContacts();
-      navigation.goBack();
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: `${isEditMode ? 'Update' : 'Add'} Failed`,
-        text2: `Could not ${
-          isEditMode ? 'update' : 'add'
-        } contact. Please try again.`,
+        text1: isEditMode ? 'Update Failed' : 'Add Failed',
+        text2: 'Please try again',
         position: 'bottom',
         visibilityTime: 2000,
       });
+      helpers.setSubmitting(false);
     }
   };
 

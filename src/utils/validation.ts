@@ -11,7 +11,7 @@ export const contactSchema = Yup.object().shape({
     .required('Surname is required'),
   phone: Yup.string()
     .matches(/^[0-9]+$/, 'Please enter only numbers')
-    .min(10, 'Phone number is too short')
+    .min(6, 'Phone number is too short')
     .max(11, 'Phone number is too long')
     .required('Phone number is required'),
   email: Yup.string()
@@ -22,7 +22,7 @@ export const contactSchema = Yup.object().shape({
     .max(50, 'Job title is too long')
     .nullable(),
   address: Yup.string()
-    .min(5, 'Address is too short')
+    .min(4, 'Address is too short')
     .max(200, 'Address is too long')
     .nullable(),
 });

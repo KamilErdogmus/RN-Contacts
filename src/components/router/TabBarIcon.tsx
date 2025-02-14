@@ -1,4 +1,3 @@
-// components/router/TabBarIcon.tsx
 import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useThemeColors} from '../../store/themeStore';

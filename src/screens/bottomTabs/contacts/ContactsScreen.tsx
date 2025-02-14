@@ -1,5 +1,5 @@
 import {View} from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {defaultScreenStyles} from '../../../styles/defaultScreenStyles';
 import {useContactStore} from '../../../store/store';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../../../database/Database';
 import FloatActionButton from '../../../components/contact/FloatActionButton';
 import {SCREENS} from '../../../utils/SCREENS';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useThemeColors} from '../../../store/themeStore';
 import ContactList from '../../../components/contact/ContactList';
@@ -41,6 +41,12 @@ export default function ContactsScreen() {
 
     initDatabase();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchContacts();
+    }, [fetchContacts]),
+  );
 
   const handleAddContact = () => {
     navigation.navigate(SCREENS.ContactForm, {mode: 'add'});
