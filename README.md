@@ -6,6 +6,7 @@ Contact List is a React Native mobile application designed for managing personal
 
 ## Libraries and Tools
 
+- **@react-native-async-storage/async-storage**: Persistent key-value storage system for React Native apps to store data locally on device
 - **@react-navigation/bottom-tabs**: Implements bottom tab navigation for seamless switching between main sections like home or profile.
 - **@react-navigation/native**: Provides the core navigation infrastructure, managing screen transitions and navigation flow.
 - **@react-navigation/native-stack**: Enables stack-based navigation for smooth transitions between contact details and form screens.
@@ -22,7 +23,7 @@ Contact List is a React Native mobile application designed for managing personal
 
 ## Preview
 
-<img src="src/assets/" height="600" />
+<img src="src/assets/Contacts-GIF.gif" height="600" />
 
 ## Installation
 

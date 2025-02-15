@@ -4,7 +4,6 @@ import SQLite, {
   SQLiteDatabase,
   Transaction,
 } from 'react-native-sqlite-storage';
-import {celebrities} from '../constants/sampleData';
 
 let db: SQLiteDatabase;
 
@@ -167,25 +166,6 @@ const addNewContact = async (contact: IContact): Promise<void> => {
     } catch (error) {
       reject(error);
     }
-  });
-};
-
-const checkTableStructure = async () => {
-  const database = await getDB();
-  return new Promise((resolve, reject) => {
-    database.transaction(txn => {
-      txn.executeSql(
-        "PRAGMA table_info('users')",
-        [],
-        (_, result) => {
-          resolve(result.rows.raw());
-        },
-        (_, error) => {
-          reject(error);
-          return false;
-        },
-      );
-    });
   });
 };
 
@@ -451,146 +431,6 @@ const getFavorites = async (): Promise<IContact[]> => {
   });
 };
 
-const insertSampleData = async (): Promise<boolean> => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const database = await getDB();
-      database.transaction((txn: Transaction) => {
-        txn.executeSql('DROP TABLE IF EXISTS recents', [], () => {
-          txn.executeSql('DROP TABLE IF EXISTS users', [], () => {
-            txn.executeSql(
-              `CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name VARCHAR(100),
-                surname VARCHAR(500),
-                phone TEXT UNIQUE,
-                email VARCHAR(500),
-                address VARCHAR(500),
-                job VARCHAR(500)
-              )`,
-              [],
-              () => {
-                txn.executeSql(
-                  `CREATE TABLE IF NOT EXISTS recents (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    recent_id INTEGER,
-                    callType VARCHAR(50) DEFAULT 'outgoing',
-                    duration INTEGER DEFAULT 0,
-                    FOREIGN KEY (recent_id) REFERENCES users(id)
-                    ON DELETE CASCADE
-                    ON UPDATE CASCADE
-                  )`,
-                  [],
-                  () => {
-                    let insertedCount = 0;
-                    celebrities.forEach(celebrity => {
-                      txn.executeSql(
-                        'INSERT INTO users (name, surname, phone, email, address, job) VALUES (?, ?, ?, ?, ?, ?)',
-                        [
-                          celebrity.name,
-                          celebrity.surname,
-                          celebrity.phone,
-                          celebrity.email,
-                          celebrity.address,
-                          celebrity.job,
-                        ],
-                        () => {
-                          insertedCount++;
-                          if (insertedCount === celebrities.length) {
-                            txn.executeSql(
-                              'SELECT id FROM users',
-                              [],
-                              (_, res: ResultSet) => {
-                                const users = [];
-                                for (let i = 0; i < res.rows.length; i++) {
-                                  users.push(res.rows.item(i));
-                                }
-
-                                let recentCallsCount = 0;
-                                const numberOfRecentCalls = 20;
-
-                                for (let i = 0; i < numberOfRecentCalls; i++) {
-                                  const randomUser =
-                                    users[
-                                      Math.floor(Math.random() * users.length)
-                                    ];
-                                  const randomDuration = Math.floor(
-                                    Math.random() * 300,
-                                  );
-                                  const randomDate = new Date(
-                                    Date.now() -
-                                      Math.random() * 30 * 24 * 60 * 60 * 1000,
-                                  ).toISOString();
-                                  const callTypes = [
-                                    'incoming',
-                                    'outgoing',
-                                    'missed',
-                                  ];
-                                  const randomCallType =
-                                    callTypes[
-                                      Math.floor(
-                                        Math.random() * callTypes.length,
-                                      )
-                                    ];
-
-                                  txn.executeSql(
-                                    'INSERT INTO recents (recent_id, date, callType, duration) VALUES (?, ?, ?, ?)',
-                                    [
-                                      randomUser.id,
-                                      randomDate,
-                                      randomCallType,
-                                      randomDuration,
-                                    ],
-                                    () => {
-                                      recentCallsCount++;
-                                      if (
-                                        recentCallsCount === numberOfRecentCalls
-                                      ) {
-                                        resolve(true);
-                                      }
-                                    },
-                                    (_, error: SQLite.SQLError): boolean => {
-                                      reject(error);
-                                      return false;
-                                    },
-                                  );
-                                }
-                              },
-                              (_, error: SQLite.SQLError): boolean => {
-                                reject(error);
-                                return false;
-                              },
-                            );
-                          }
-                        },
-                        (_, error: SQLite.SQLError): boolean => {
-                          reject(error);
-                          return false;
-                        },
-                      );
-                    });
-                  },
-                  (_, error: SQLite.SQLError): boolean => {
-                    reject(error);
-                    return false;
-                  },
-                );
-              },
-              (_, error: SQLite.SQLError): boolean => {
-                reject(error);
-                return false;
-              },
-            );
-          });
-        });
-      });
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
 export {
   createContactsTable,
   createRecentsTable,
@@ -608,6 +448,4 @@ export {
   addToFavorites,
   createFavoritesTable,
   removeFromFavorites,
-  checkTableStructure,
-  insertSampleData,
 };

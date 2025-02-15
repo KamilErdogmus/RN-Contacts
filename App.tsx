@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, LogBox} from 'react-native';
 import Router from './src/Router/Router';
 import {useThemeColors} from './src/store/themeStore';
 import Toast from 'react-native-toast-message';
@@ -8,8 +8,9 @@ import {
   createContactsTable,
   createFavoritesTable,
   createRecentsTable,
-  insertSampleData,
 } from './src/database/Database';
+
+LogBox.ignoreLogs(['Open debugger to view warning']);
 
 const App = () => {
   const {colors} = useThemeColors();
@@ -17,19 +18,9 @@ const App = () => {
   useEffect(() => {
     const initializeData = async () => {
       try {
-        console.log('Creating tables...');
         await createContactsTable();
         await createRecentsTable();
         await createFavoritesTable();
-
-        console.log('Inserting sample data...');
-        const result = await insertSampleData();
-
-        if (result) {
-          console.log('Sample data inserted successfully');
-        } else {
-          console.error('Failed to insert sample data');
-        }
       } catch (error) {
         console.error('Error initializing data:', error);
       }
