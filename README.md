@@ -23,7 +23,7 @@ Contact List is a React Native mobile application designed for managing personal
 
 ## Preview
 
-<img src="src/assets/Contacts-GIF.gif" height="600" />
+<img src="src/assets/Contacts-GIF.gif" height="700" />
 
 ## Installation
 
