@@ -78,13 +78,13 @@ To start Metro, run the following command from the _root_ of your React Native p
 #### Using npm
 
 ```bash
-npx expo start
+npx start
 ```
 
 #### Using Yarn
 
 ```bash
-yarn expo start
+yarn start
 ```
 
 ## Step 2: Start your Application
@@ -96,7 +96,7 @@ Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _roo
 ##### using npm
 
 ```bash
-npx expo run android
+npx run android
 ```
 
 #### Using Yarn
@@ -111,7 +111,7 @@ yarn android
 ##### using npm
 
 ```bash
-npx expo run ios
+npx run ios
 ```
 
 #### Using Yarn
